@@ -1,0 +1,10 @@
+﻿<Application
+    x:Class="WorkTimer.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:WorkTimer.ViewModels"
+    xmlns:local="using:WorkTimer">
+    <Application.Resources>
+        <vm:ViewModelLocator xmlns:vm="using:WorkTimer.ViewModels" x:Key="Locator" />
+    </Application.Resources>
+</Application>

@@ -1,0 +1,331 @@
+﻿<Page
+    x:Class="WorkTimer.Views.StartPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WorkTimer.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:extensions="using:Microsoft.Toolkit.Uwp.UI.Extensions"
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:media="using:Microsoft.Toolkit.Uwp.UI.Media"
+    xmlns:animations="using:Microsoft.Toolkit.Uwp.UI.Animations"
+    extensions:TitleBarExtensions.BackgroundColor="Black"
+    extensions:TitleBarExtensions.ForegroundColor="White"
+    extensions:TitleBarExtensions.ButtonBackgroundColor="Black"
+    extensions:TitleBarExtensions.ButtonForegroundColor="White"
+    extensions:StatusBarExtensions.BackgroundColor="Black"
+    extensions:StatusBarExtensions.BackgroundOpacity="0.8"
+    extensions:StatusBarExtensions.ForegroundColor="White"
+    extensions:StatusBarExtensions.IsVisible="False"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    DataContext="{Binding StartPageInstance, Source={StaticResource Locator}}">
+
+    <Page.Resources>
+        <Style x:Key="ColumnHeadersCenter" TargetType="ContentControl">
+            <Setter Property="FontWeight" Value="SemiLight" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontFamily" Value="XamlAutoFontFamily" />
+            <Setter Property="Margin" Value="0,5,0,7" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+    </Page.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="280"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <!--Main Stack Panel-->
+            
+            <!--Projects List-->
+            <Grid Grid.Column="0">
+                <StackPanel Orientation="Vertical" 
+                            HorizontalAlignment="Left">
+                    
+                    <!--Program Title-->
+                    <TextBlock Text="Project Timer"
+                           Margin="10,5,2,20"
+                           Style="{ThemeResource BodyTextBlockStyle}"/>
+                    
+                    <!--List of Projects-->
+                    <ListView ItemsSource="{Binding Projects, Mode=OneWay}" 
+                              Width="280" 
+                              VerticalAlignment="Stretch"
+                              SelectionMode="Single"
+                              SelectedItem="{Binding SelectedProject, Mode=TwoWay}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Vertical" 
+                                            Margin="10,7,2,7" 
+                                            Padding="0,5,0,5">
+                                <TextBlock Text="{Binding Title}"
+                                           Style="{ThemeResource BaseTextBlockStyle}"
+                                           FontSize="20"/>
+                                <TextBlock Text="{Binding FormattedTaskQuantity}"
+                                           Style="{ThemeResource BodyTextBlockStyle}"
+                                           MaxLines="1"
+                                           Opacity="0.8"/>
+                                <TextBlock Text="{Binding FormattedTotalTime}"
+                                           Style="{ThemeResource BodyTextBlockStyle}"
+                                           MaxLines="1"
+                                           Opacity="0.6"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+                    
+                    <!--Transparency-->
+                    <StackPanel.Background>
+                        <media:AcrylicBrush BackgroundSource="HostBackdrop"
+                                TintColor="{StaticResource SystemChromeAltHighColor}"
+                                TintOpacity="0.5"
+                                FallbackColor="{StaticResource SystemChromeMediumColor}"
+                                />
+                    </StackPanel.Background>
+                </StackPanel>
+                
+                <!--Command Bar-->
+                <StackPanel VerticalAlignment="Bottom" Width="280">
+                <CommandBar IsEnabled="{Binding UIIsEnabled}">
+                    <AppBarButton Icon="Edit" Label="Edytuj" 
+                                  Command="{Binding EditProjectCommand}"
+                                  IsEnabled="{Binding IsProjectSelected}"/>
+                    <AppBarButton Icon="Delete" Label="Usuń" 
+                                  Command="{Binding DeleteProjectCommand}" 
+                                  IsEnabled="{Binding IsProjectSelected}"/>
+                    <AppBarButton Icon="Add" Label="Dodaj" 
+                                  Command="{Binding AddNewProjectCommand}"/>
+                    <CommandBar.Background>
+                            <media:AcrylicBrush BackgroundSource="HostBackdrop"
+                                TintColor="{StaticResource SystemChromeAltHighColor}"
+                                TintOpacity="0.5"
+                                FallbackColor="{StaticResource SystemChromeMediumColor}"
+                                />
+                        </CommandBar.Background>
+                    </CommandBar>
+                </StackPanel>
+            </Grid>
+        
+        <!--No selected Project content-->
+        <StackPanel HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Grid.Column="1"
+                    Visibility="{Binding ProjectHolderVisibility}">
+            <animations:Implicit.ShowAnimations>
+                <animations:ScalarAnimation Target="Opacity" Duration="0:0:1" To="1"></animations:ScalarAnimation>
+            </animations:Implicit.ShowAnimations>
+            <animations:Implicit.HideAnimations>
+                <animations:ScalarAnimation Target="Opacity" Duration="0:0:1" To="0"></animations:ScalarAnimation>
+            </animations:Implicit.HideAnimations>
+            <SymbolIcon Symbol="List"
+                        RenderTransformOrigin=".5,.5">
+                <SymbolIcon.RenderTransform>
+                    <CompositeTransform
+                        ScaleX="2"
+                        ScaleY="2"/>
+                </SymbolIcon.RenderTransform>
+            </SymbolIcon>
+            <TextBlock Text="Wybierz Projekt z list po lewej stronie"
+                       FontSize="24"
+                       Margin="0,12"/>
+        </StackPanel>
+
+        <!--Selected Project content-->
+        <Grid Grid.Column="1" 
+              Margin="30,50,30,30" 
+              ScrollViewer.VerticalScrollBarVisibility="Visible" 
+              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+              Visibility="{Binding ProjectDetailsVisibility}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*" MinHeight="150"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <animations:Implicit.ShowAnimations>
+                <animations:ScalarAnimation Target="Opacity" Duration="0:0:1" To="1"></animations:ScalarAnimation>
+            </animations:Implicit.ShowAnimations>
+            <animations:Implicit.HideAnimations>
+                <animations:ScalarAnimation Target="Opacity" Duration="0:0:1" To="0"></animations:ScalarAnimation>
+            </animations:Implicit.HideAnimations>
+
+            <!--Title-->
+            <TextBlock Text="Projekt 1"
+                       Style="{ThemeResource BaseTextBlockStyle}"
+                       FontSize="30"
+                       HorizontalAlignment="Left"
+                       Margin="0,0,0,10"/>
+
+            <!--Add new Task button-->
+            <Button Content="Nowe zadanie" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Center"
+                    Margin="0,5,0,15"
+                    Style="{ThemeResource TextBlockButtonStyle}"
+                    Command="{Binding AddNewTaskCommand}"
+                    IsEnabled="{Binding UIIsEnabled}"/>
+
+            <!--Grid with Tasks-->
+            <controls:DataGrid ItemsSource="{Binding Tasks, Mode=OneWay}"
+                               SelectedItem="{Binding SelectedTask, Mode=TwoWay}"
+                               AlternatingRowBackground="Transparent"
+                               AlternatingRowForeground="Gray"
+                               VerticalScrollBarVisibility="Auto"
+                               IsReadOnly="True"
+                               SelectionMode="Single"
+                               AutoGenerateColumns="False"
+                               Grid.Row="1"
+                               Margin="0,20,0,0"
+                               ColumnHeaderStyle="{ThemeResource ColumnHeadersCenter}">
+                <controls:DataGrid.Columns>
+                    <controls:DataGridTextColumn Header="#"
+                                                 Binding="{Binding Number}"
+                                                 Tag="Number">
+                        <controls:DataGridTextColumn.CellStyle>
+                            <Style TargetType="controls:DataGridCell">
+                                <Style.Setters>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style.Setters>
+                            </Style>
+                        </controls:DataGridTextColumn.CellStyle>
+                    </controls:DataGridTextColumn>
+
+                    <controls:DataGridTextColumn Header="Nazwa"
+                                                 Binding="{Binding Title}"
+                                                 Tag="Title"/>
+                    <controls:DataGridTextColumn Header="Czas trwania"
+                                                 Binding="{Binding FormatedTaskTime}"
+                                                 Tag="FormatedTaskTime">
+                        <controls:DataGridTextColumn.CellStyle>
+                            <Style TargetType="controls:DataGridCell">
+                                <Style.Setters>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style.Setters>
+                            </Style>
+                        </controls:DataGridTextColumn.CellStyle>
+                    </controls:DataGridTextColumn>
+                    <controls:DataGridTextColumn Header="Utworzono"
+                                                 Binding="{Binding FormatedCreatedOn}"
+                                                 Tag="FormatedCreatedOn">
+                        <controls:DataGridTextColumn.CellStyle>
+                            <Style TargetType="controls:DataGridCell">
+                                <Style.Setters>
+                                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                                </Style.Setters>
+                            </Style>
+                        </controls:DataGridTextColumn.CellStyle>
+                    </controls:DataGridTextColumn>
+                    <controls:DataGridTextColumn Header="Zmodyfikowano"
+                                                 Binding="{Binding FormatedModifiedOn}"
+                                                 Tag="FormatedModifiedOn">
+                        <controls:DataGridTextColumn.CellStyle>
+                            <Style TargetType="controls:DataGridCell">
+                                <Style.Setters>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style.Setters>
+                            </Style>
+                        </controls:DataGridTextColumn.CellStyle>
+                    </controls:DataGridTextColumn>
+                </controls:DataGrid.Columns>
+                <controls:DataGrid.ContextFlyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem Text="Edytuj" 
+                                        Icon="Edit"
+                                        IsEnabled="{Binding IsTaskSelected}"
+                                        Command="{Binding EditTaskCommand}"/>
+                        <MenuFlyoutItem Text="Usuń" 
+                                        Icon="Delete" 
+                                        IsEnabled="{Binding IsTaskSelected}"
+                                        Command="{Binding DeleteTaskCommand}"/>
+                    </MenuFlyout>
+                </controls:DataGrid.ContextFlyout>
+            </controls:DataGrid>
+
+            <!--Current Session-->
+            <StackPanel Grid.Row="2" HorizontalAlignment="Center">
+                <TextBlock Text="Czas aktualnej sesji"
+                       Style="{ThemeResource BaseTextBlockStyle}"
+                       FontSize="15"
+                       HorizontalAlignment="Center"
+                       Opacity="0.75"
+                       Margin="0,20,0,0"/>
+
+                <TextBlock Text="{Binding CurrentSessionString}" 
+                           HorizontalAlignment="Center"
+                           Style="{ThemeResource BaseTextBlockStyle}"
+                           FontSize="25"/>
+            </StackPanel>
+
+            <!--Project time-->
+            <StackPanel Grid.Row="3" HorizontalAlignment="Center">
+                <TextBlock Text="Czas w projekcie "
+                       Style="{ThemeResource BaseTextBlockStyle}"
+                       FontSize="15"
+                       HorizontalAlignment="Center"
+                       Opacity="0.75"
+                       Margin="0,20,0,0"/>
+
+                <TextBlock Text="{Binding ProjectTimeString}" 
+                           HorizontalAlignment="Center"
+                           Style="{ThemeResource BaseTextBlockStyle}"
+                           FontSize="25"/>
+            </StackPanel>
+
+            <!--Task Time-->
+            <StackPanel Grid.Row="4"
+                        HorizontalAlignment="Center"
+                        Visibility="{Binding IsTaskSelectedVisibility}">
+                <TextBlock Text="Czas w zadaniu"
+                       Style="{ThemeResource BaseTextBlockStyle}"
+                       FontSize="15"
+                       HorizontalAlignment="Center"
+                       Opacity="0.75"
+                       Margin="0,20,0,0"/>
+
+                <TextBlock Text="{Binding TaskTimeString}" 
+                           HorizontalAlignment="Center"
+                           Style="{ThemeResource BaseTextBlockStyle}"
+                           FontSize="25"/>
+            </StackPanel>
+
+            <!--Action buttons-->
+            <StackPanel Orientation="Horizontal" 
+                        Grid.Row="6" Margin="0,15,0,0"
+                        HorizontalAlignment="Right" 
+                        VerticalAlignment="Bottom"
+                        Visibility="{Binding ActionButtonsVisibility}">
+                <Button Content="Zatrzymaj"
+                        Style="{ThemeResource ButtonRevealStyle}"
+                        Command="{Binding PauseCommand}"
+                        Visibility="{Binding PauseButtonVisibility}"/>
+                <Button Content="Wzów"
+                        Style="{ThemeResource ButtonRevealStyle}"
+                        Command="{Binding ResumeCommand}"
+                        Visibility="{Binding ResumeButtonVisibility}"/>
+                <Button Content="Zakończ"
+                        Style="{ThemeResource ButtonRevealStyle}"
+                        Margin="30,0,0,0"
+                        Command="{Binding EndTimerCommand}"/>
+
+            </StackPanel>
+            
+            <!--Start button-->
+            <StackPanel Orientation="Horizontal" 
+                        Grid.Row="6" Margin="0,15,0,0" 
+                        Spacing="30" HorizontalAlignment="Right" 
+                        VerticalAlignment="Bottom"
+                        Visibility="{Binding StartButtonVisibility}">
+                <Button Content="Rozpocznij"
+                        Style="{ThemeResource AccentButtonStyle}"
+                        Command="{Binding StartCommand}"/>
+            </StackPanel>
+
+        </Grid>
+        <controls:InAppNotification x:Name="LocalNotification" Grid.Column="1" />
+    </Grid>
+</Page>
