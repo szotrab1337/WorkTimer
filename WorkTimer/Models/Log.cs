@@ -12,6 +12,7 @@ namespace WorkTimer.Models
         [PrimaryKey, AutoIncrement]
         public int LogId { get; set; }
         public DateTime CreatedOn { get; set; }
+        public string Type { get; set; }
         public string Description { get; set; }
     }
 }

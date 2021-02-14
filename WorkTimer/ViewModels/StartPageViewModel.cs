@@ -33,14 +33,7 @@ namespace WorkTimer.ViewModels
             ResumeCommand = new RelayCommand(ResumeAction);
             EndTimerCommand = new RelayCommand(EndTimerAction);
 
-            UIIsEnabled = true;
-            CurrentSessionSeconds = 0;
-            IsTimerActive = false;
-            IsTaskSelectedVisibility = "Collapsed";
-            ProjectDetailsVisibility = "Collapsed";
-            ProjectHolderVisibility = "Visible";
-            ResumeButtonVisibility = "Collapsed";
-            PauseButtonVisibility = "Visible";
+            InitializeVariables();
 
             LoadProjects();
             //PopToast();
@@ -65,6 +58,10 @@ namespace WorkTimer.ViewModels
 
         public DispatcherTimer Timer;
         public short DeltaSeconds = 0;
+        public int TimerOldValue;
+        public DateTime TriggerTimerTime;
+        public int SelectedProjectSecondsOnStart;
+        public int SelectedTaskSecondsOnStart;
 
         public ObservableCollection<Project> Projects
         {
@@ -72,40 +69,35 @@ namespace WorkTimer.ViewModels
             set { _Projects = value; RaisePropertyChanged("Projects"); }
         }
         private ObservableCollection<Project> _Projects;
-        
+
         public ObservableCollection<PTask> Tasks
         {
             get { return _Tasks; }
             set { _Tasks = value; RaisePropertyChanged("Tasks"); }
         }
         private ObservableCollection<PTask> _Tasks;
-        
+
         public Project SelectedProject
         {
             get { return _SelectedProject; }
             set
             {
-                _SelectedProject = value; 
+                _SelectedProject = value;
                 RaisePropertyChanged("SelectedProject");
                 IsProjectSelected = SelectedProject != null ? true : false;
                 ProjectDetailsVisibility = SelectedProject != null ? "Visible" : "Collapsed";
                 ProjectHolderVisibility = SelectedProject != null ? "Collapsed" : "Visible";
 
                 if (SelectedProject != null)
-                {
-                    ProjectTimeString = SelectedProject.TotalTimeSpan.ToString(@"hh\:mm\:ss");
                     LoadTasks();
-                }
+
 
                 if (Timer != null)
-                {
                     EndTimer();
-                }
-
             }
         }
         private Project _SelectedProject;
-        
+
         public PTask SelectedTask
         {
             get { return _SelectedTask; }
@@ -113,20 +105,14 @@ namespace WorkTimer.ViewModels
             {
                 _SelectedTask = value;
                 RaisePropertyChanged("SelectedTask");
-                IsTaskSelected = (SelectedTask != null) && UIIsEnabled ? true : false;
-                IsTaskSelectedVisibility = SelectedTask != null ? "Visible" : "Collapsed";
-
-                if (SelectedTask != null)
-                    TaskTimeString = SelectedTask.TotalTimeSpan.ToString(@"hh\:mm\:ss");
+                TasksMenuFlyoutIsEnabled = (SelectedTask != null) && UIIsEnabled && !IsTimerActive ? true : false;
 
                 if (Timer != null)
-                {
                     EndTimer();
-                }
             }
         }
         private PTask _SelectedTask;
-        
+
         public bool IsProjectSelected
         {
             get { return _IsProjectSelected; }
@@ -134,101 +120,74 @@ namespace WorkTimer.ViewModels
         }
         private bool _IsProjectSelected;
 
-        public string ProjectTimeString
-        {
-            get { return _ProjectTimeString; }
-            set { _ProjectTimeString = value; RaisePropertyChanged("ProjectTimeString"); }
-        }
-        private string _ProjectTimeString;
-
-        public string TaskTimeString
-        {
-            get { return _TaskTimeString; }
-            set { _TaskTimeString = value; RaisePropertyChanged("TaskTimeString"); }
-        }
-        private string _TaskTimeString;
-
-        public ulong CurrentSessionSeconds
+        public int CurrentSessionSeconds
         {
             get { return _CurrentSessionSeconds; }
             set
             {
-                _CurrentSessionSeconds = value; 
+                _CurrentSessionSeconds = value;
                 RaisePropertyChanged("CurrentSessionMiliseconds");
                 CurrentSessionString = TimeSpan.FromSeconds(CurrentSessionSeconds).ToString(@"hh\:mm\:ss");
-
-                if (SelectedProject != null)
-                    ProjectTimeString = SelectedProject.TotalTimeSpan.ToString(@"hh\:mm\:ss");
-
-                if (SelectedTask != null)
-                    TaskTimeString = SelectedTask.TotalTimeSpan.ToString(@"hh\:mm\:ss");
             }
         }
-        private ulong _CurrentSessionSeconds;
-        
+        private int _CurrentSessionSeconds;
+
         public string CurrentSessionString
         {
             get { return _CurrentSessionString; }
             set { _CurrentSessionString = value; RaisePropertyChanged("CurrentSessionString"); }
         }
         private string _CurrentSessionString;
-        
-        public string IsTaskSelectedVisibility
+
+        public bool TasksMenuFlyoutIsEnabled
         {
-            get { return _IsTaskSelectedVisibility; }
-            set { _IsTaskSelectedVisibility = value; RaisePropertyChanged("IsTaskSelectedVisibility"); }
+            get { return _TasksMenuFlyoutIsEnabled; }
+            set { _TasksMenuFlyoutIsEnabled = value; RaisePropertyChanged("TasksMenuFlyoutIsEnabled"); }
         }
-        private string _IsTaskSelectedVisibility;
-        
-        public bool IsTaskSelected
-        {
-            get { return _IsTaskSelected; }
-            set { _IsTaskSelected = value; RaisePropertyChanged("IsTaskSelected"); }
-        }
-        private bool _IsTaskSelected;
-        
+        private bool _TasksMenuFlyoutIsEnabled;
+
         public bool UIIsEnabled
         {
             get { return _UIIsEnabled; }
             set { _UIIsEnabled = value; RaisePropertyChanged("UIIsEnabled"); }
         }
         private bool _UIIsEnabled;
-        
+
         public string ProjectDetailsVisibility
         {
             get { return _ProjectDetailsVisibility; }
             set { _ProjectDetailsVisibility = value; RaisePropertyChanged("ProjectDetailsVisibility"); }
         }
         private string _ProjectDetailsVisibility;
-        
+
         public string PauseButtonVisibility
         {
             get { return _PauseButtonVisibility; }
             set { _PauseButtonVisibility = value; RaisePropertyChanged("PauseButtonVisibility"); }
         }
         private string _PauseButtonVisibility;
-        
+
         public string ResumeButtonVisibility
         {
             get { return _ResumeButtonVisibility; }
             set { _ResumeButtonVisibility = value; RaisePropertyChanged("ResumeButtonVisibility"); }
         }
         private string _ResumeButtonVisibility;
-        
+
         public string ActionButtonsVisibility
         {
             get { return _ActionButtonsVisibility; }
             set { _ActionButtonsVisibility = value; RaisePropertyChanged("ActionButtonsVisibility"); }
         }
         private string _ActionButtonsVisibility;
-        
+
         public string StartButtonVisibility
         {
             get { return _StartButtonVisibility; }
             set { _StartButtonVisibility = value; RaisePropertyChanged("StartButtonVisibility"); }
         }
         private string _StartButtonVisibility;
-        
+
         public string ProjectHolderVisibility
         {
             get { return _ProjectHolderVisibility; }
@@ -245,17 +204,74 @@ namespace WorkTimer.ViewModels
                 RaisePropertyChanged("IsTimerActive");
                 ActionButtonsVisibility = IsTimerActive ? "Visible" : "Collapsed";
                 StartButtonVisibility = IsTimerActive ? "Collapsed" : "Visible";
+                TasksMenuFlyoutIsEnabled = (SelectedTask != null) && UIIsEnabled && !IsTimerActive ? true : false;
             }
         }
         private bool _IsTimerActive;
 
         #endregion
 
+
+        private async void ShowConfirmContentDialog(string Title, string PrimaryButtonText, string Content)
+        {
+            try
+            {
+                ContentDialog dialog = new ContentDialog()
+                {
+                    Title = Title,
+                    PrimaryButtonText = PrimaryButtonText,
+                    Content = Content,
+                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
+                };
+
+                ContentDialogResult result = await dialog.ShowAsync();
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ContentDialog error = new ContentDialog
+                {
+                    Title = "Błąd",
+                    Content = "Wystąpił błąd! Sprawdź logi programu",
+                    PrimaryButtonText = "Potwierdź",
+                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
+                };
+                await error.ShowAsync();
+            }
+        }
+
+        private async void InitializeVariables()
+        {
+            try
+            {
+                await Logger.LogMessage("Start programu");
+                await Logger.LogMessage("Rozpoczęcie przypisania wartości startowych do zmiennych");
+
+                UIIsEnabled = true;
+                CurrentSessionSeconds = 0;
+                TimerOldValue = 0;
+                IsTimerActive = false;
+                ProjectDetailsVisibility = "Collapsed";
+                ProjectHolderVisibility = "Visible";
+                ResumeButtonVisibility = "Collapsed";
+                PauseButtonVisibility = "Visible";
+
+                await Logger.LogMessage("Wartości przypisane do zmiennych pomyślnie", 0);
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
+            }
+        }
+
         private async Task<string> ShowInputContentDialog(string Placeholder, string Title, string PrimaryButtonText,
             string SecondaryButtonText, string Text)
         {
             try
             {
+                await Logger.LogMessage("Wyświetlenie okna do wprowadzania wartości");
+
                 TextBox input = new TextBox()
                 {
                     Height = (double)App.Current.Resources["TextControlThemeMinHeight"],
@@ -273,21 +289,20 @@ namespace WorkTimer.ViewModels
 
                 ContentDialogResult result = await dialog.ShowAsync();
 
+                await Logger.LogMessage("Zatwierdzono", 0);
+
                 if (result == ContentDialogResult.Secondary)
+                {
+                    await Logger.LogMessage("Anulowano operację");
                     return "-1";
+                }
 
                 return ((TextBox)dialog.Content).Text;
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
                 return string.Empty;
             }
         }
@@ -296,6 +311,8 @@ namespace WorkTimer.ViewModels
         {
             try
             {
+                await Logger.LogMessage("Wyświetlenia okna zapytania");
+
                 ContentDialog dialog = new ContentDialog()
                 {
                     Title = Title,
@@ -306,21 +323,20 @@ namespace WorkTimer.ViewModels
 
                 ContentDialogResult result = await dialog.ShowAsync();
 
+                await Logger.LogMessage("Zatwierdzono", 0);
+
                 if (result == ContentDialogResult.Secondary)
+                {
+                    await Logger.LogMessage("Anulowano", 1);
                     return false;
+                }
 
                 return true;
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
                 return false;
             }
         }
@@ -329,12 +345,15 @@ namespace WorkTimer.ViewModels
         {
             try
             {
+                await Logger.LogMessage("Dodawanie nowego projeku");
+
                 string ProjectTitle = await ShowInputContentDialog("Wprowadź nazwę projektu", "Dodaj projekt", "Dodaj", "Anuluj", string.Empty);
 
                 if (string.IsNullOrEmpty(ProjectTitle))
                 {
                     LocalNotification localNotification = new LocalNotification { Content = "Wprowadzono błędną nazwę projektu", Duration = 2500 };
                     Messenger.Default.Send(new NotificationMessage<LocalNotification>(localNotification, "NewLocalNotification"));
+                    await Logger.LogMessage("Wprowadzono błędną nazwę projektu", 3);
                     return;
                 }
 
@@ -350,17 +369,13 @@ namespace WorkTimer.ViewModels
 
                 await App.Database.AddNewProject(newProject);
                 Projects.Add(newProject);
+
+                await Logger.LogMessage("Pomyślnie dodano nowy projekt", 0);
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
             }
         }
 
@@ -368,6 +383,8 @@ namespace WorkTimer.ViewModels
         {
             try
             {
+                await Logger.LogMessage("Usuwanie projektu");
+
                 bool Decision = await ShowYesNoContentDialog("Usuwanie", "Usuń", "Anuluj", "Czy na pewno chcesz usunąć projekt?");
 
                 if (!Decision)
@@ -375,17 +392,13 @@ namespace WorkTimer.ViewModels
 
                 await App.Database.RemoveProject(SelectedProject);
                 Projects.Remove(Projects.Where(x => x.ProjectId == SelectedProject.ProjectId).FirstOrDefault());
+
+                await Logger.LogMessage("Usunięto projekt", 0);
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
             }
         }
 
@@ -393,12 +406,15 @@ namespace WorkTimer.ViewModels
         {
             try
             {
+                await Logger.LogMessage("Rozpoczęcie edycji projektu");
+
                 string ProjectTitle = await ShowInputContentDialog("Wprowadź nazwę projektu", "Edycja projektu", "Zapisz", "Anuluj", SelectedProject.Title);
 
                 if (string.IsNullOrEmpty(ProjectTitle))
                 {
                     LocalNotification localNotification = new LocalNotification { Content = "Wprowadzono błędną nazwę projektu", Duration = 2500 };
                     Messenger.Default.Send(new NotificationMessage<LocalNotification>(localNotification, "NewLocalNotification"));
+                    await Logger.LogMessage("Wprowadzono błędną nazwę projektu", 3);
                     return;
                 }
 
@@ -411,17 +427,13 @@ namespace WorkTimer.ViewModels
 
                 await App.Database.UpdateProject(editedProject);
                 Projects.Where(x => x.ProjectId == SelectedProject.ProjectId).FirstOrDefault().Title = ProjectTitle;
+
+                await Logger.LogMessage("Edycja projektu zakończona powodzeniem", 0);
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
             }
         }
 
@@ -429,12 +441,15 @@ namespace WorkTimer.ViewModels
         {
             try
             {
+                await Logger.LogMessage("Rozpoczęcie edycji zadania");
+
                 string TaskTitle = await ShowInputContentDialog("Wprowadź nazwę zadania", "Edycja zadania", "Zapisz", "Anuluj", SelectedTask.Title);
 
                 if (string.IsNullOrEmpty(TaskTitle))
                 {
                     LocalNotification localNotification = new LocalNotification { Content = "Wprowadzono błędną nazwę zadania", Duration = 2500 };
                     Messenger.Default.Send(new NotificationMessage<LocalNotification>(localNotification, "NewLocalNotification"));
+                    await Logger.LogMessage("Wprowadzono błędną nazwę zadania", 3);
                     return;
                 }
 
@@ -448,17 +463,13 @@ namespace WorkTimer.ViewModels
                 await App.Database.UpdateTask(editedTask);
                 Tasks.Where(x => x.TaskId == SelectedTask.TaskId).FirstOrDefault().Title = TaskTitle;
                 Tasks.Where(x => x.TaskId == SelectedTask.TaskId).FirstOrDefault().ModifiedOn = editedTask.ModifiedOn;
+
+                await Logger.LogMessage("Edycja zadania zakończona powodzeniem", 0);
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
             }
         }
 
@@ -466,6 +477,8 @@ namespace WorkTimer.ViewModels
         {
             try
             {
+                await Logger.LogMessage("Usuwanie zadania");
+
                 bool Decision = await ShowYesNoContentDialog("Usuwanie", "Usuń", "Anuluj", "Czy na pewno chcesz usunąć zadanie?");
 
                 if (!Decision)
@@ -475,17 +488,13 @@ namespace WorkTimer.ViewModels
                 Tasks.Remove(Tasks.Where(x => x.TaskId == SelectedTask.TaskId).FirstOrDefault());
                 Projects.Where(x => x.ProjectId == SelectedProject.ProjectId).FirstOrDefault().GetTasks();
                 RenumberTasks();
+
+                await Logger.LogMessage("Usunięto zadanie", 0);
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
             }
         }
 
@@ -493,18 +502,14 @@ namespace WorkTimer.ViewModels
         {
             try
             {
+                await Logger.LogMessage("Rozpoczęto wczytywanie listy projektów");
                 Projects = new ObservableCollection<Project>(await App.Database.GetAllProjects());
+                await Logger.LogMessage("Lista projektów załadowana pomyślnie", 0);
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
             }
         }
 
@@ -512,19 +517,17 @@ namespace WorkTimer.ViewModels
         {
             try
             {
+                await Logger.LogMessage("Rozpoczęto ładowanie listy zadań");
+
                 Tasks = new ObservableCollection<PTask>(await App.Database.GetAllTasks(SelectedProject.ProjectId));
                 RenumberTasks();
+
+                await Logger.LogMessage("Lista zadań załadowana pomyślnie", 0);
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
             }
         }
 
@@ -532,12 +535,15 @@ namespace WorkTimer.ViewModels
         {
             try
             {
+                await Logger.LogMessage("Dodawanie nowego zadania");
+
                 string TaskTitle = await ShowInputContentDialog("Wprowadź nazwę zadania", "Dodaj zadanie", "Dodaj", "Anuluj", string.Empty);
 
                 if (string.IsNullOrEmpty(TaskTitle))
                 {
                     LocalNotification localNotification = new LocalNotification { Content = "Wprowadzono błędną nazwę zadania", Duration = 2500 };
                     Messenger.Default.Send(new NotificationMessage<LocalNotification>(localNotification, "NewLocalNotification"));
+                    await Logger.LogMessage("Wprowadzono błędną nazwę zadania", 3);
                     return;
                 }
 
@@ -556,59 +562,167 @@ namespace WorkTimer.ViewModels
                 Tasks.Add(newTask);
                 Projects.Where(x => x.ProjectId == SelectedProject.ProjectId).FirstOrDefault().GetTasks();
                 RenumberTasks();
+
+                await Logger.LogMessage("Pomyślnie dodano nowe zadanie", 3);
             }
             catch (Exception ex)
             {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
             }
         }
 
-        private void RenumberTasks()
+        private async void RenumberTasks()
         {
-            for (int i = 0; i< Tasks.Count;i++)
+            try
             {
-                Tasks[i].Number = i + 1;
+                await Logger.LogMessage("Nadawanie numerów do zadań");
+
+                for (int i = 0; i < Tasks.Count; i++)
+                {
+                    Tasks[i].Number = i + 1;
+                }
+
+                await Logger.LogMessage("Numerowanie zakończone powodzeniem", 0);
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
             }
         }
 
-        private void StartAction()
+        private async void StartAction()
         {
-            IsTimerActive = true;
+            try
+            {
+                await Logger.LogMessage("Uruchomienie stopera");
 
-            Timer = new DispatcherTimer();
-            Timer.Interval = TimeSpan.FromSeconds(1);
-            Timer.Tick += TimerOnTick;
-            Timer.Start();
-            UIIsEnabled = false;
+                IsTimerActive = true;
+
+                Timer = new DispatcherTimer();
+                Timer.Interval = TimeSpan.FromSeconds(1);
+                Timer.Tick += TimerOnTick;
+                SelectedProjectSecondsOnStart = SelectedProject.Seconds;
+                SelectedTaskSecondsOnStart = SelectedTask != null ? SelectedTask.Seconds : 0;
+                TriggerTimerTime = DateTime.Now;
+                UIIsEnabled = false;
+                TimerOldValue = 0;
+
+                Timer.Start();
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
+            }
         }
 
         private async void PauseAction()
         {
-            Timer.Stop();
-            ResumeButtonVisibility = "Visible";
-            PauseButtonVisibility = "Collapsed";
-            SaveData();
+            try
+            {
+                await Logger.LogMessage("Zatrzymanie timera");
+
+                Timer.Stop();
+                ResumeButtonVisibility = "Visible";
+                PauseButtonVisibility = "Collapsed";
+                SaveData();
+
+                TimerOldValue = CurrentSessionSeconds;
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
+            }
         }
 
-        private void TimerOnTick(object sender, object e)
+        private async void TimerOnTick(object sender, object e)
         {
-            CurrentSessionSeconds++;
-            SelectedProject.Seconds++;
+            try
+            {
+                CurrentSessionSeconds = TimerOldValue + Convert.ToInt32((DateTime.Now - TriggerTimerTime).TotalSeconds);
 
-            if (SelectedTask != null)
-                SelectedTask.Seconds++;
-
-            DeltaSeconds++;
-
-            if(DeltaSeconds == 15)
                 SaveData();
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
+            }
+        }
+
+        private async void ResumeAction()
+        {
+            try
+            {
+                ResumeButtonVisibility = "Collapsed";
+                PauseButtonVisibility = "Visible";
+                TriggerTimerTime = DateTime.Now;
+                Timer.Start();
+
+                await Logger.LogMessage("Wznownienie stopera");
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
+            }
+        }
+
+        private async void SaveData()
+        {
+            try
+            {
+                SelectedProject.Seconds = SelectedProjectSecondsOnStart + CurrentSessionSeconds;
+                await App.Database.UpdateProject(SelectedProject);
+
+                if (SelectedTask != null)
+                {
+                    SelectedTask.Seconds = SelectedTaskSecondsOnStart + CurrentSessionSeconds;
+                    await App.Database.UpdateTask(SelectedTask);
+                }
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
+            }
+        }
+
+        private async void EndTimer()
+        {
+            try
+            {
+                Timer.Stop();
+
+                UIIsEnabled = true;
+                ResumeButtonVisibility = "Collapsed";
+                PauseButtonVisibility = "Visible";
+                IsTimerActive = false;
+                CurrentSessionSeconds = 0;
+
+                await Logger.LogMessage("Zakończenie mierzenia czasu");
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
+            }
+        }
+
+        private async void EndTimerAction()
+        {
+            try
+            {
+                EndTimer();
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogMessage(ex.ToString(), 3);
+                ShowConfirmContentDialog("Błąd", "Potwierdź", "Wystąpił błąd! Sprawdź logi programu.");
+            }
         }
 
         private void PopToast()
@@ -617,56 +731,6 @@ namespace WorkTimer.ViewModels
             ToastContent content = GenerateToastContent();
             ToastNotificationManager.CreateToastNotifier().Show(new ToastNotification(content.GetXml()));
         }
-
-        private void ResumeAction()
-        {
-            ResumeButtonVisibility = "Collapsed";
-            PauseButtonVisibility = "Visible";
-            Timer.Start();
-        }
-
-        private async void SaveData()
-        {
-            try
-            {
-                Project project = SelectedProject;
-                PTask task = SelectedTask != null ? SelectedTask : null;
-
-                await App.Database.UpdateProject(project);
-                if (task != null)
-                    await App.Database.UpdateTask(task);
-
-                DeltaSeconds = 0;
-            }
-            catch (Exception ex)
-            {
-                ContentDialog error = new ContentDialog
-                {
-                    Title = "Błąd",
-                    Content = ex.ToString(),
-                    PrimaryButtonText = "Potwierdź",
-                    RequestedTheme = Windows.UI.Xaml.ElementTheme.Default
-                };
-                await error.ShowAsync();
-            }
-        }
-
-        private void EndTimer()
-        {
-            Timer.Stop();
-            SaveData();
-            UIIsEnabled = true;
-            ResumeButtonVisibility = "Collapsed";
-            PauseButtonVisibility = "Visible";
-            IsTimerActive = false;
-            CurrentSessionSeconds = 0;
-        }
-
-        private void EndTimerAction()
-        {
-            EndTimer();
-        }
-
 
         public static ToastContent GenerateToastContent()
         {

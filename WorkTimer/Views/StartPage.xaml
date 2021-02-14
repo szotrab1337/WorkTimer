@@ -9,13 +9,8 @@
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     xmlns:media="using:Microsoft.Toolkit.Uwp.UI.Media"
     xmlns:animations="using:Microsoft.Toolkit.Uwp.UI.Animations"
-    extensions:TitleBarExtensions.BackgroundColor="Black"
-    extensions:TitleBarExtensions.ForegroundColor="White"
-    extensions:TitleBarExtensions.ButtonBackgroundColor="Black"
-    extensions:TitleBarExtensions.ButtonForegroundColor="White"
-    extensions:StatusBarExtensions.BackgroundColor="Black"
+    RequestedTheme="Default"
     extensions:StatusBarExtensions.BackgroundOpacity="0.8"
-    extensions:StatusBarExtensions.ForegroundColor="White"
     extensions:StatusBarExtensions.IsVisible="False"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
@@ -140,9 +135,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*" MinHeight="150"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -155,7 +147,7 @@
             </animations:Implicit.HideAnimations>
 
             <!--Title-->
-            <TextBlock Text="Projekt 1"
+            <TextBlock Text="{Binding SelectedProject.Title}"
                        Style="{ThemeResource BaseTextBlockStyle}"
                        FontSize="30"
                        HorizontalAlignment="Left"
@@ -236,18 +228,20 @@
                     <MenuFlyout>
                         <MenuFlyoutItem Text="Edytuj" 
                                         Icon="Edit"
-                                        IsEnabled="{Binding IsTaskSelected}"
+                                        IsEnabled="{Binding TasksMenuFlyoutIsEnabled}"
                                         Command="{Binding EditTaskCommand}"/>
                         <MenuFlyoutItem Text="Usuń" 
                                         Icon="Delete" 
-                                        IsEnabled="{Binding IsTaskSelected}"
+                                        IsEnabled="{Binding TasksMenuFlyoutIsEnabled}"
                                         Command="{Binding DeleteTaskCommand}"/>
                     </MenuFlyout>
                 </controls:DataGrid.ContextFlyout>
             </controls:DataGrid>
 
             <!--Current Session-->
-            <StackPanel Grid.Row="2" HorizontalAlignment="Center">
+            <StackPanel Grid.Row="2" 
+                        HorizontalAlignment="Center" 
+                        VerticalAlignment="Center">
                 <TextBlock Text="Czas aktualnej sesji"
                        Style="{ThemeResource BaseTextBlockStyle}"
                        FontSize="15"
@@ -258,10 +252,10 @@
                 <TextBlock Text="{Binding CurrentSessionString}" 
                            HorizontalAlignment="Center"
                            Style="{ThemeResource BaseTextBlockStyle}"
-                           FontSize="25"/>
+                           FontSize="45"/>
             </StackPanel>
 
-            <!--Project time-->
+            <!--Project time--><!--
             <StackPanel Grid.Row="3" HorizontalAlignment="Center">
                 <TextBlock Text="Czas w projekcie "
                        Style="{ThemeResource BaseTextBlockStyle}"
@@ -276,7 +270,7 @@
                            FontSize="25"/>
             </StackPanel>
 
-            <!--Task Time-->
+            --><!--Task Time--><!--
             <StackPanel Grid.Row="4"
                         HorizontalAlignment="Center"
                         Visibility="{Binding IsTaskSelectedVisibility}">
@@ -291,11 +285,11 @@
                            HorizontalAlignment="Center"
                            Style="{ThemeResource BaseTextBlockStyle}"
                            FontSize="25"/>
-            </StackPanel>
+            </StackPanel>-->
 
             <!--Action buttons-->
             <StackPanel Orientation="Horizontal" 
-                        Grid.Row="6" Margin="0,15,0,0"
+                        Grid.Row="4" Margin="0,15,0,0"
                         HorizontalAlignment="Right" 
                         VerticalAlignment="Bottom"
                         Visibility="{Binding ActionButtonsVisibility}">
@@ -316,7 +310,7 @@
             
             <!--Start button-->
             <StackPanel Orientation="Horizontal" 
-                        Grid.Row="6" Margin="0,15,0,0" 
+                        Grid.Row="4" Margin="0,15,0,0" 
                         Spacing="30" HorizontalAlignment="Right" 
                         VerticalAlignment="Bottom"
                         Visibility="{Binding StartButtonVisibility}">
