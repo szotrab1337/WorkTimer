@@ -137,6 +137,8 @@
                 <RowDefinition Height="*" MinHeight="150"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <animations:Implicit.ShowAnimations>
@@ -151,7 +153,8 @@
                        Style="{ThemeResource BaseTextBlockStyle}"
                        FontSize="30"
                        HorizontalAlignment="Left"
-                       Margin="0,0,0,10"/>
+                       Margin="0,0,0,10"
+                       Opacity="0.9"/>
 
             <!--Add new Task button-->
             <Button Content="Nowe zadanie" 
@@ -252,44 +255,13 @@
                 <TextBlock Text="{Binding CurrentSessionString}" 
                            HorizontalAlignment="Center"
                            Style="{ThemeResource BaseTextBlockStyle}"
-                           FontSize="45"/>
+                           FontSize="45"
+                           Opacity="0.95"/>
             </StackPanel>
-
-            <!--Project time--><!--
-            <StackPanel Grid.Row="3" HorizontalAlignment="Center">
-                <TextBlock Text="Czas w projekcie "
-                       Style="{ThemeResource BaseTextBlockStyle}"
-                       FontSize="15"
-                       HorizontalAlignment="Center"
-                       Opacity="0.75"
-                       Margin="0,20,0,0"/>
-
-                <TextBlock Text="{Binding ProjectTimeString}" 
-                           HorizontalAlignment="Center"
-                           Style="{ThemeResource BaseTextBlockStyle}"
-                           FontSize="25"/>
-            </StackPanel>
-
-            --><!--Task Time--><!--
-            <StackPanel Grid.Row="4"
-                        HorizontalAlignment="Center"
-                        Visibility="{Binding IsTaskSelectedVisibility}">
-                <TextBlock Text="Czas w zadaniu"
-                       Style="{ThemeResource BaseTextBlockStyle}"
-                       FontSize="15"
-                       HorizontalAlignment="Center"
-                       Opacity="0.75"
-                       Margin="0,20,0,0"/>
-
-                <TextBlock Text="{Binding TaskTimeString}" 
-                           HorizontalAlignment="Center"
-                           Style="{ThemeResource BaseTextBlockStyle}"
-                           FontSize="25"/>
-            </StackPanel>-->
 
             <!--Action buttons-->
             <StackPanel Orientation="Horizontal" 
-                        Grid.Row="4" Margin="0,15,0,0"
+                        Grid.Row="3" Margin="0,15,0,-10"
                         HorizontalAlignment="Right" 
                         VerticalAlignment="Bottom"
                         Visibility="{Binding ActionButtonsVisibility}">
@@ -310,7 +282,7 @@
             
             <!--Start button-->
             <StackPanel Orientation="Horizontal" 
-                        Grid.Row="4" Margin="0,15,0,0" 
+                        Grid.Row="3" Margin="0,15,0,-10" 
                         Spacing="30" HorizontalAlignment="Right" 
                         VerticalAlignment="Bottom"
                         Visibility="{Binding StartButtonVisibility}">
@@ -318,6 +290,13 @@
                         Style="{ThemeResource AccentButtonStyle}"
                         Command="{Binding StartCommand}"/>
             </StackPanel>
+
+            <TextBlock Text="{Binding StatusText}" 
+                       Grid.Row="4"
+                       Margin="-20,6,-20,-25"
+                       Opacity="0.35"
+                       FontStyle="Italic" 
+                       FontSize="12"/>
 
         </Grid>
         <controls:InAppNotification x:Name="LocalNotification" Grid.Column="1" />

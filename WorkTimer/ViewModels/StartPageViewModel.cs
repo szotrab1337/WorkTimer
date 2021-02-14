@@ -138,6 +138,13 @@ namespace WorkTimer.ViewModels
             set { _CurrentSessionString = value; RaisePropertyChanged("CurrentSessionString"); }
         }
         private string _CurrentSessionString;
+        
+        public string StatusText
+        {
+            get { return _StatusText; }
+            set { _StatusText = value; RaisePropertyChanged("StatusText"); }
+        }
+        private string _StatusText;
 
         public bool TasksMenuFlyoutIsEnabled
         {
@@ -210,7 +217,6 @@ namespace WorkTimer.ViewModels
         private bool _IsTimerActive;
 
         #endregion
-
 
         private async void ShowConfirmContentDialog(string Title, string PrimaryButtonText, string Content)
         {
@@ -608,6 +614,7 @@ namespace WorkTimer.ViewModels
                 TriggerTimerTime = DateTime.Now;
                 UIIsEnabled = false;
                 TimerOldValue = 0;
+                StatusText = "Odmierzanie czasu";
 
                 Timer.Start();
             }
@@ -628,6 +635,7 @@ namespace WorkTimer.ViewModels
                 ResumeButtonVisibility = "Visible";
                 PauseButtonVisibility = "Collapsed";
                 SaveData();
+                StatusText = "Odmierzanie czasu zatrzymane";
 
                 TimerOldValue = CurrentSessionSeconds;
             }
@@ -702,6 +710,7 @@ namespace WorkTimer.ViewModels
                 PauseButtonVisibility = "Visible";
                 IsTimerActive = false;
                 CurrentSessionSeconds = 0;
+                StatusText = string.Empty;
 
                 await Logger.LogMessage("Zakończenie mierzenia czasu");
             }
